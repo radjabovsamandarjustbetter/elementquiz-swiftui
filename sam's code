@@ -1,0 +1,283 @@
+import SwiftUI
+
+// Main app entry point
+@main
+struct chemApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+
+// Element data structure to hold information about each element
+struct Element {
+    let name: String
+    let symbol: String
+    let atomicNumber: Int
+    let imageName: String
+    let color: Color
+}
+
+struct ContentView: View {
+    // @State allows the view to update when these values change
+    @State private var currentIndex = 0
+    @State private var showAnswer = false
+    @State private var score = 0
+    @State private var totalAttempts = 0
+    @State private var showStats = false
+    
+    // Array of elements to quiz on
+    let elements = [
+        Element(name: "Carbon", symbol: "C", atomicNumber: 6, imageName: "carbon", color: .green),
+        Element(name: "Gold", symbol: "Au", atomicNumber: 79, imageName: "gold", color: .yellow),
+        Element(name: "Oxygen", symbol: "O", atomicNumber: 8, imageName: "oxygen", color: .blue),
+        Element(name: "Hydrogen", symbol: "H", atomicNumber: 1, imageName: "hydrogen", color: .red),
+        Element(name: "Iron", symbol: "Fe", atomicNumber: 26, imageName: "iron", color: .gray)
+    ]
+    
+    var body: some View {
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                gradient: Gradient(colors: [.black, .blue.opacity(0.8)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                // Header with title and score button
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Element Quiz")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        Text("Test Your Knowledge")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    
+                    Spacer()
+                    
+                    // Score display button
+                    Button(action: { showStats.toggle() }) {
+                        VStack {
+                            Text("\(score)/\(totalAttempts)")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            Text("Score")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(15)
+                    }
+                }
+                .padding()
+                
+                Spacer()
+                
+                // Element image with colored background
+                ZStack {
+                    RoundedRectangle(cornerRadius: 30)
+                        .fill(elements[currentIndex].color.opacity(0.3))
+                        .frame(width: 280, height: 280)
+                        .shadow(color: elements[currentIndex].color.opacity(0.5), radius: 20)
+                    
+                    Image(elements[currentIndex].imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 250, height: 250)
+                        .cornerRadius(20)
+                }
+                
+                // Answer display section
+                VStack(spacing: 15) {
+                    Text("Element #\(currentIndex + 1) of \(elements.count)")
+                        .font(.headline)
+                        .foregroundColor(.white.opacity(0.7))
+                    
+                    // Show answer or question marks
+                    if showAnswer {
+                        VStack(spacing: 10) {
+                            Text(elements[currentIndex].symbol)
+                                .font(.system(size: 60, weight: .bold))
+                                .foregroundColor(elements[currentIndex].color)
+                            
+                            Text(elements[currentIndex].name)
+                                .font(.title)
+                                .foregroundColor(.white)
+                            
+                            Text("Atomic Number: \(elements[currentIndex].atomicNumber)")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(20)
+                        .transition(.scale)
+                    } else {
+                        Text("???")
+                            .font(.system(size: 60, weight: .bold))
+                            .foregroundColor(.white.opacity(0.3))
+                    }
+                }
+                
+                Spacer()
+                
+                // Navigation buttons
+                HStack(spacing: 20) {
+                    // Previous button
+                    Button(action: {
+                        if currentIndex > 0 {
+                            currentIndex -= 1
+                            showAnswer = false
+                        }
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(15)
+                    }
+                    .disabled(currentIndex == 0)
+                    .opacity(currentIndex == 0 ? 0.5 : 1)
+                    
+                    // Show/Hide answer button
+                    Button(action: {
+                        withAnimation {
+                            showAnswer.toggle()
+                        }
+                        // Track score when showing answer
+                        if showAnswer {
+                            totalAttempts += 1
+                            score += 1
+                        }
+                    }) {
+                        Text(showAnswer ? "Hide Answer" : "Show Answer")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 60)
+                            .background(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [.blue, .purple]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(15)
+                            .shadow(color: .blue.opacity(0.5), radius: 10)
+                    }
+                    
+                    // Next button
+                    Button(action: {
+                        if currentIndex < elements.count - 1 {
+                            currentIndex += 1
+                            showAnswer = false
+                        }
+                    }) {
+                        Image(systemName: "chevron.right")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(15)
+                    }
+                    .disabled(currentIndex == elements.count - 1)
+                    .opacity(currentIndex == elements.count - 1 ? 0.5 : 1)
+                }
+                .padding()
+                
+                // Reset button
+                Button(action: {
+                    currentIndex = 0
+                    showAnswer = false
+                    score = 0
+                    totalAttempts = 0
+                }) {
+                    Text("Reset Quiz")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding()
+                }
+            }
+        }
+        // Show stats screen when score button is tapped
+        .sheet(isPresented: $showStats) {
+            StatsView(score: score, total: totalAttempts)
+        }
+    }
+}
+
+// Stats screen view
+struct StatsView: View {
+    let score: Int
+    let total: Int
+    @Environment(\.dismiss) var dismiss
+    
+    // Calculate percentage
+    var percentage: Int {
+        total > 0 ? (score * 100) / total : 0
+    }
+    
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [.purple, .blue]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                Text("Your Stats")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                VStack(spacing: 20) {
+                    StatRow(title: "Correct Answers", value: "\(score)")
+                    StatRow(title: "Total Attempts", value: "\(total)")
+                    StatRow(title: "Accuracy", value: "\(percentage)%")
+                }
+                .padding()
+                
+                Button(action: { dismiss() }) {
+                    Text("Close")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 50)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(15)
+                }
+            }
+        }
+    }
+}
+
+// Individual stat row component
+struct StatRow: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.white)
+            Spacer()
+            Text(value)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+        }
+        .padding()
+        .background(Color.white.opacity(0.2))
+        .cornerRadius(15)
+    }
+}
