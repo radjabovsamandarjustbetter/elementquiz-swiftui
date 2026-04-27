@@ -281,3 +281,9 @@ struct StatRow: View {
         .cornerRadius(15)
     }
 }
+
+
+
+#Preview {
+    ContentView()
+}
